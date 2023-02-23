@@ -1,33 +1,26 @@
-const Hapi = require("@hapi/hapi");
-const mysql = require("mysql");
+const express = require("express");
+const cors = require("cors");
+const database = require("./models/index.js");
+const bodyParser = require("body-parser");
+const PORT = process.env.PORT || 5000;
+const app = express();
 
-const init = async() => {
-    const server = Hapi.server({
-        port: 3000,
-        host: "localhost",
-    });
-
-    server.route({
-        method: "GET",
-        path: "/",
-        handler: (request, h) => {
-            return "Hello World!";
-        },
-    });
-
-    var con = mysql.createConnection({
-        host: "localhost",
-        user: "root",
-        password: "",
-    });
-
-    con.connect(function(err) {
-        if (err) throw err;
-        console.log("Connected!");
-    });
-
-    await server.start();
-    console.log("Server running on %s", server.info.uri);
+var corsOptions = {
+    origin: "http://localhost:5000",
 };
 
-init();
+app.use(cors(corsOptions));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+database.sequelize.sync().then(() => {
+    console.log("re-sync db.");
+});
+
+app.get("/", (req, res) => {
+    res.json({ message: "Welcome to the application." });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}.`);
+});
